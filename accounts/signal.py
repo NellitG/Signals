@@ -3,13 +3,14 @@ from django.dispatch import receiver
 from .models import UserProfile
 from django.contrib.auth.models import User
 from django.core.mail import send_mail
+from django.db.models.signals import pre_delete
 
 @receiver(post_save, sender=User)
 def create_user_profile(sender, instance, created, **kwargs):
     if created:
         UserProfile.objects.create(user=instance)
 
-        # Send Welcome Email
+    # Send Welcome Email
     send_mail(
         subject ='Welcome to Our Site',
         message = 'Hi ' + instance.username + ', Thank you for registering.',
@@ -22,3 +23,7 @@ def create_user_profile(sender, instance, created, **kwargs):
 def save_user_profile(sender, instance, **kwargs):
     instance.userprofile.save()
 
+@receiver(pre_delete, sender=User)
+def delete_user_profile(sender, instance, **kwargs):
+    print (f"Good Bye {instance.username}!! We are deleting your account.")
+    instance.userprofile.delete()
